@@ -19,6 +19,7 @@ export interface DashboardStats {
   completed: number;
   completedThisWeek: number;
   totalTasks: number;
+  activeProjects: number;
 }
 
 export interface TaskSummary {
@@ -38,6 +39,7 @@ interface TasksResponse {
   stats: DashboardStats;
   projects: ProjectData[];
   tasks: TaskSummary[];
+  openTasksByAssignee: Array<{ id: string; username: string; email: string; count: number }>;
 }
 
 const fetchTasks = async (): Promise<TasksResponse> => {

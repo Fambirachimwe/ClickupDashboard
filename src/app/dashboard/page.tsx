@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { FullscreenToggle } from "@/components/fullscreen-toggle";
 import { RefreshCw, AlertCircle } from "lucide-react";
 import Image from "next/image";
+import { OpenTasksPie } from "@/components/open-tasks-pie";
 
 export default function DashboardPage() {
   const { data, isLoading, error, refetch, isFetching } = useTasks();
@@ -53,12 +54,13 @@ export default function DashboardPage() {
   const stats = data?.stats;
   const projects = data?.projects || [];
   const tasks = data?.tasks || [];
+  const openTasksByAssignee = data?.openTasksByAssignee || [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen overflow-hidden bg-background">
       {/* Header */}
       <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-2">
           <div className="flex items-center justify-between">
             <div>
               <Image src="/logo.png" alt="Logo" width={150} height={150} />
@@ -87,7 +89,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Dashboard Content */}
-      <main className=" container mx-auto px-2 py-6 space-y-24">
+      <main className="container mx-auto px-3 py-3 space-y-3 h-[calc(100vh-88px)]">
         {!stats ? (
           <div className="text-center py-12">
             <h2 className="text-lg font-semibold mb-2">No data available</h2>
@@ -99,7 +101,7 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-4 gap-3">
               <StatCard
                 title="Unassigned"
                 value={stats.unassigned}
@@ -110,10 +112,12 @@ export default function DashboardPage() {
                 value={stats.inProgress}
                 description="tasks in progress"
               />
+
+              {/* displat the total number of projects */}
               <StatCard
-                title="Completed"
-                value={stats.completed}
-                description="tasks completed"
+                title="Active Projects"
+                value={stats.activeProjects}
+                description="projects active"
               />
               <StatCard
                 title="Tasks Completed This Week"
@@ -122,16 +126,16 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Project Progress and Task Overview - Side by Side */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Project Progress Table - Left Half */}
-              <div className="space-y-4 ">
+            {/* Single-screen content row */}
+            <div className="grid grid-cols-12 gap-3 h-[calc(100%-200px)]">
+              <div className="col-span-5">
                 <ProjectProgressTable projects={projects} />
               </div>
-
-              {/* Task Overview Table - Right Half */}
-              <div className="space-y-4">
+              <div className="col-span-4">
                 <TaskOverviewTable tasks={tasks} />
+              </div>
+              <div className="col-span-3">
+                <OpenTasksPie data={openTasksByAssignee} />
               </div>
             </div>
           </>

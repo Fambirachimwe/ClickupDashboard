@@ -12,9 +12,13 @@ import { ProjectData } from "@/hooks/use-tasks";
 
 interface ProjectProgressTableProps {
   projects: ProjectData[];
+  compact?: boolean;
 }
 
-export function ProjectProgressTable({ projects }: ProjectProgressTableProps) {
+export function ProjectProgressTable({
+  projects,
+  compact = false,
+}: ProjectProgressTableProps) {
   const getProgressColor = (progress: number) => {
     if (progress >= 80) return "text-green-600";
     if (progress >= 50) return "text-blue-600";
@@ -22,19 +26,27 @@ export function ProjectProgressTable({ projects }: ProjectProgressTableProps) {
     return "text-red-600";
   };
 
+  const visible = compact ? projects.slice(0, 8) : projects;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">
+    <Card className={compact ? "h-full" : undefined}>
+      <CardHeader className={compact ? "py-2" : undefined}>
+        <CardTitle className={compact ? "text-base" : "text-lg font-semibold"}>
           Project Progress
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Progress overview for all projects
-        </p>
+        {!compact && (
+          <p className="text-sm text-muted-foreground">
+            Progress overview for all projects
+          </p>
+        )}
       </CardHeader>
-      <CardContent>
-        <div className="rounded-md border max-h-96 overflow-auto">
-          <Table>
+      <CardContent className={compact ? "pt-0" : undefined}>
+        <div
+          className={`rounded-md border ${
+            compact ? "max-h-none overflow-hidden" : "max-h-96 overflow-auto"
+          }`}
+        >
+          <Table className={compact ? "text-xs" : undefined}>
             <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
                 <TableHead className="w-[200px]">Project Name</TableHead>
@@ -42,11 +54,11 @@ export function ProjectProgressTable({ projects }: ProjectProgressTableProps) {
                 <TableHead className="text-center">Todo</TableHead>
                 <TableHead className="text-center">In Progress</TableHead>
                 <TableHead className="text-center">Completed</TableHead>
-                <TableHead className="text-center">This Week</TableHead>
+                {/* <TableHead className="text-center">This Week</TableHead> */}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {projects.length === 0 ? (
+              {visible.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={6}
@@ -56,23 +68,30 @@ export function ProjectProgressTable({ projects }: ProjectProgressTableProps) {
                   </TableCell>
                 </TableRow>
               ) : (
-                projects.map((project) => {
+                visible.map((project) => {
                   const totalTasks =
                     project.counters.todo +
                     project.counters.inProgress +
                     project.counters.completed;
                   return (
-                    <TableRow key={project.id}>
+                    <TableRow
+                      key={project.id}
+                      className={compact ? "h-10" : undefined}
+                    >
                       <TableCell className="font-medium">
                         <div
-                          className="max-w-[180px] truncate"
+                          className={`truncate ${
+                            compact ? "max-w-[160px]" : "max-w-[180px]"
+                          }`}
                           title={project.name}
                         >
                           {project.name}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          ID: {project.id}
-                        </div>
+                        {!compact && (
+                          <div className="text-xs text-muted-foreground">
+                            ID: {project.id}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
@@ -106,11 +125,11 @@ export function ProjectProgressTable({ projects }: ProjectProgressTableProps) {
                           {project.counters.completed}
                         </span>
                       </TableCell>
-                      <TableCell className="text-center">
+                      {/* <TableCell className="text-center">
                         <span className="inline-flex items-center justify-center w-8 h-8 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
                           {project.counters.completedThisWeek}
                         </span>
-                      </TableCell>
+                      </TableCell> */}
                     </TableRow>
                   );
                 })

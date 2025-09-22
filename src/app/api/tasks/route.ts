@@ -52,6 +52,14 @@ interface DashboardStats {
   completed: number;
   completedThisWeek: number;
   totalTasks: number;
+  activeProjects: number;
+}
+
+interface AssigneeOpenStatsItem {
+  id: string;
+  username: string;
+  email: string;
+  count: number;
 }
 
 interface TaskSummary {
@@ -134,6 +142,7 @@ export async function GET(request: NextRequest) {
   try {
     const apiKey = process.env.CLICKUP_API_KEY;
     const teamId = process.env.CLICKUP_TEAM_ID;
+    const spaceId = process.env.CLICKUP_SPACE_ID || '90125160522';
 
     if (!apiKey || !teamId) {
       return NextResponse.json(
@@ -193,12 +202,32 @@ export async function GET(request: NextRequest) {
       isDateThisWeek(task.date_done)
     );
 
+    // Fetch folders (projects) for Active Projects count
+    const foldersResp = await fetch(
+      `https://api.clickup.com/api/v2/space/${spaceId}/folder`,
+      {
+        headers: {
+          Authorization: apiKey,
+          Accept: 'application/json',
+        },
+      }
+    );
+
+    let activeProjects = 0;
+    if (foldersResp.ok) {
+      const foldersJson: any = await foldersResp.json();
+      const folders: Array<{ id: string; name: string; hidden?: boolean; access?: boolean }>
+        = (foldersJson?.folders as any[]) || [];
+      activeProjects = folders.filter(f => (f.hidden === false || f.hidden === undefined) && (f.access !== false)).length;
+    }
+
     const dashboardStats: DashboardStats = {
       unassigned: unassignedTasks.length,
       inProgress: inProgressTasks.length,
       completed: completedTasks.length,
       completedThisWeek: completedThisWeekTasks.length,
       totalTasks: totalTasks,
+      activeProjects,
     };
 
     // Calculate projects data with proper progress calculation
@@ -273,10 +302,31 @@ export async function GET(request: NextRequest) {
         };
       });
 
+    // Compute open tasks by assignee (group by assignee id)
+    const assigneeOpenMap = new Map<string, AssigneeOpenStatsItem>();
+    tasks.forEach(task => {
+      if (!isTaskCompleted(task)) {
+        (task.assignees || []).forEach(a => {
+          const key = String(a.id);
+          if (!assigneeOpenMap.has(key)) {
+            assigneeOpenMap.set(key, {
+              id: key,
+              username: a.username,
+              email: a.email,
+              count: 0,
+            });
+          }
+          assigneeOpenMap.get(key)!.count += 1;
+        });
+      }
+    });
+    const openTasksByAssignee = Array.from(assigneeOpenMap.values());
+
     return NextResponse.json({
       stats: dashboardStats,
       projects: projects,
-      tasks: taskSummaries
+      tasks: taskSummaries,
+      openTasksByAssignee,
     });
 
   } catch (error) {

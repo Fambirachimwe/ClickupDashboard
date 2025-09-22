@@ -31,7 +31,7 @@ const getStatusColor = (status: string) => {
 };
 
 const formatDueDate = (dueDate: string | null) => {
-  if (!dueDate) return "No due date";
+  if (!dueDate) return "-";
 
   try {
     // ClickUp timestamps are in milliseconds
@@ -75,8 +75,8 @@ export function TaskOverviewTable({ tasks }: TaskOverviewTableProps) {
           <Table>
             <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
-                <TableHead className="w-[300px]">Task Name</TableHead>
-                <TableHead>Project</TableHead>
+                <TableHead className="w-[200px]">Task Name</TableHead>
+                {/* <TableHead>Project</TableHead> */}
                 <TableHead>Status</TableHead>
                 <TableHead>Assignees</TableHead>
                 <TableHead>Due Date</TableHead>
@@ -87,7 +87,7 @@ export function TaskOverviewTable({ tasks }: TaskOverviewTableProps) {
                 <TableRow>
                   <TableCell
                     colSpan={5}
-                    className="text-center py-8 text-muted-foreground"
+                    className="text-center py-2 text-muted-foreground"
                   >
                     No tasks available
                   </TableCell>
@@ -96,19 +96,19 @@ export function TaskOverviewTable({ tasks }: TaskOverviewTableProps) {
                 tasks.map((task) => (
                   <TableRow key={task.id}>
                     <TableCell className="font-medium">
-                      <div className="max-w-[280px] truncate" title={task.name}>
+                      <div className=" truncate" title={task.name}>
                         {task.name}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <div
                         className="max-w-[120px] truncate text-sm text-muted-foreground"
                         title={task.projectName}
                       >
                         {task.projectName}
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </TableCell> */}
+                    <TableCell className="text-center text-xs">
                       <Badge
                         variant="secondary"
                         className={`${getStatusColor(task.status)} border-0`}
