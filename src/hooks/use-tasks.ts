@@ -56,7 +56,7 @@ export const useTasks = () => {
   return useQuery({
     queryKey: ['tasks'],
     queryFn: fetchTasks,
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds
-    staleTime: 30 * 1000, // Consider data stale after 30 seconds
+    refetchInterval: 10800 * 1000, // Refetch every 30 seconds
+    staleTime: 10800 * 1000, // Consider data stale after 30 seconds
   });
 };

@@ -101,17 +101,12 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-4 gap-3">
-              <StatCard
+            <div className="grid grid-cols-3 gap-3">
+              {/* <StatCard
                 title="Unassigned"
                 value={stats.unassigned}
                 description="Unassigned Tasks"
-              />
-              <StatCard
-                title="In Progress"
-                value={stats.inProgress}
-                description="tasks in progress"
-              />
+              /> */}
 
               {/* displat the total number of projects */}
               <StatCard
@@ -119,6 +114,13 @@ export default function DashboardPage() {
                 value={stats.activeProjects}
                 description="projects active"
               />
+
+              <StatCard
+                title="In Progress"
+                value={stats.inProgress}
+                description="tasks in progress"
+              />
+
               <StatCard
                 title="Tasks Completed This Week"
                 value={stats.completedThisWeek}

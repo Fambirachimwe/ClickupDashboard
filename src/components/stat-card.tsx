@@ -14,7 +14,7 @@ export function StatCard({
   className,
 }: StatCardProps) {
   return (
-    <Card className={`h-full ${className || ""}`}>
+    <Card className={`h-full  ${className || ""}`}>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
