@@ -10,11 +10,12 @@ import { FullscreenToggle } from "@/components/fullscreen-toggle";
 import { RefreshCw, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import { OpenTasksPie } from "@/components/open-tasks-pie";
+import { ReviewTasksTable } from "@/components/review-tasks-table";
 
 export default function DashboardPage() {
   const { data, isLoading, error, refetch, isFetching } = useTasks();
 
-  // console.log(data);
+  console.log("data from the dashboard page", data);
 
   const handleRefresh = () => {
     refetch();
@@ -54,6 +55,7 @@ export default function DashboardPage() {
   const stats = data?.stats;
   const projects = data?.projects || [];
   const tasks = data?.tasks || [];
+  const reviewTasks = data?.reviewTasks || [];
   const openTasksByAssignee = data?.openTasksByAssignee || [];
 
   return (
@@ -101,13 +103,7 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-3">
-              {/* <StatCard
-                title="Unassigned"
-                value={stats.unassigned}
-                description="Unassigned Tasks"
-              /> */}
-
+            <div className="grid grid-cols-4 gap-3">
               {/* displat the total number of projects */}
               <StatCard
                 title="Active Projects"
@@ -119,6 +115,11 @@ export default function DashboardPage() {
                 title="In Progress"
                 value={stats.inProgress}
                 description="tasks in progress"
+              />
+              <StatCard
+                title="Review Tasks "
+                value={reviewTasks.length}
+                description="Tasks In Review"
               />
 
               <StatCard
@@ -140,6 +141,8 @@ export default function DashboardPage() {
                 <OpenTasksPie data={openTasksByAssignee} />
               </div>
             </div>
+
+            {/* Review tasks card */}
           </>
         )}
       </main>

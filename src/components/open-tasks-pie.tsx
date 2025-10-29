@@ -35,6 +35,7 @@ const COLORS = [
 ];
 
 export function OpenTasksPie({ data }: OpenTasksPieProps) {
+  console.log("data from the open tasks pie", data);
   const total = data.reduce((sum, d) => sum + d.count, 0);
   const pieData = data
     .sort((a, b) => b.count - a.count)

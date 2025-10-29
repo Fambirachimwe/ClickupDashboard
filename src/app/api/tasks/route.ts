@@ -15,6 +15,11 @@ interface ClickUpTask {
     username: string;
     email: string;
   }>;
+  group_assignees?: Array<{
+    id: string;
+    username: string;
+    email: string;
+  }>;
   project?: {
     id: string;
     name: string;
@@ -104,6 +109,13 @@ function isTaskInProgress(task: ClickUpTask): boolean {
     statusLower.includes('active')
   );
 }
+
+
+function isTaskInReview(task: ClickUpTask): boolean {
+  const statusLower = task.status.status.toLowerCase();
+  return !isTaskCompleted(task) && (statusLower.includes('review') || statusLower.includes('Review'));
+}
+
 
 function isTaskTodo(task: ClickUpTask): boolean {
   const statusLower = task.status.status.toLowerCase();
@@ -240,7 +252,7 @@ export async function GET(request: NextRequest) {
       const completedProjectTasks = projectTasks.filter(isTaskCompleted);
 
       // Debug logging
-      console.log(`\nProject: ${project.name}`);
+      // console.log(`\nProject: ${project.name}`);
       projectTasks.forEach(task => {
         console.log(`Task: "${task.name}" - Status: "${task.status.status}" (${task.status.type})`);
         console.log(`  - Completed: ${isTaskCompleted(task)}`);
@@ -302,11 +314,32 @@ export async function GET(request: NextRequest) {
         };
       });
 
+    // Prepare review tasks (all tasks currently in a review state)
+    const reviewTasks: TaskSummary[] = tasks
+      .filter(isTaskInReview)
+      .map(task => {
+        const projectInfo = getProjectInfo(task);
+        return {
+          id: task.id,
+          name: task.name,
+          status: task.status.status,
+          assignees: task.assignees || [],
+          dueDate: task.due_date || null,
+          projectName: projectInfo.name,
+        };
+      });
+
     // Compute open tasks by assignee (group by assignee id)
     const assigneeOpenMap = new Map<string, AssigneeOpenStatsItem>();
     tasks.forEach(task => {
       if (!isTaskCompleted(task)) {
-        (task.assignees || []).forEach(a => {
+        // Merge assignees and group_assignees, dedupe within the task by user id
+        const merged = [...(task.assignees || []), ...(task.group_assignees || [])];
+        const uniqueById = Array.from(
+          new Map(merged.map(u => [String(u.id), u])).values()
+        );
+
+        uniqueById.forEach(a => {
           const key = String(a.id);
           if (!assigneeOpenMap.has(key)) {
             assigneeOpenMap.set(key, {
@@ -321,11 +354,13 @@ export async function GET(request: NextRequest) {
       }
     });
     const openTasksByAssignee = Array.from(assigneeOpenMap.values());
+    console.log("open tasks by assignee from the api route", openTasksByAssignee);
 
     return NextResponse.json({
       stats: dashboardStats,
       projects: projects,
       tasks: taskSummaries,
+      reviewTasks,
       openTasksByAssignee,
     });
 

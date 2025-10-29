@@ -10,48 +10,10 @@ import {
 import { TaskSummary } from "@/hooks/use-tasks";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { format, parseISO } from "date-fns";
 
-interface TaskOverviewTableProps {
+interface ReviewTasksTableProps {
   tasks: TaskSummary[];
 }
-
-const getStatusColor = (status: string) => {
-  const statusLower = status.toLowerCase();
-  if (statusLower.includes("complete") || statusLower.includes("done")) {
-    return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-  }
-  if (statusLower.includes("progress") || statusLower.includes("active")) {
-    return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-  }
-  if (statusLower.includes("todo") || statusLower.includes("open")) {
-    return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
-  }
-  return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
-};
-
-const formatDueDate = (dueDate: string | null) => {
-  if (!dueDate) return "-";
-
-  try {
-    // ClickUp timestamps are in milliseconds
-    const date = new Date(parseInt(dueDate));
-    return format(date, "MMM dd, yyyy");
-  } catch {
-    return "Invalid date";
-  }
-};
-
-const isOverdue = (dueDate: string | null) => {
-  if (!dueDate) return false;
-
-  try {
-    const date = new Date(parseInt(dueDate));
-    return date < new Date();
-  } catch {
-    return false;
-  }
-};
 
 const getInitials = (username: string) => {
   return username
@@ -61,13 +23,13 @@ const getInitials = (username: string) => {
     .join("");
 };
 
-export function TaskOverviewTable({ tasks }: TaskOverviewTableProps) {
+export function ReviewTasksTable({ tasks }: ReviewTasksTableProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Task Overview</CardTitle>
+        <CardTitle className="text-lg font-semibold">Tasks In Review</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Recent tasks with assignees and due dates
+          All tasks currently marked as Review
         </p>
       </CardHeader>
       <CardContent>
@@ -75,55 +37,43 @@ export function TaskOverviewTable({ tasks }: TaskOverviewTableProps) {
           <Table>
             <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
-                <TableHead className="w-[200px]">Task Name</TableHead>
-                {/* <TableHead>Project</TableHead> */}
+                <TableHead className="w-[220px]">Task Name</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Assignees</TableHead>
-                <TableHead>Due Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {tasks.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={3}
                     className="text-center py-2 text-muted-foreground"
                   >
-                    No tasks available
+                    No tasks in review
                   </TableCell>
                 </TableRow>
               ) : (
                 tasks.map((task) => (
                   <TableRow key={task.id}>
                     <TableCell className="font-medium">
-                      <div className=" truncate" title={task.name}>
+                      <div className="truncate" title={task.name}>
                         {task.name}
                       </div>
-                    </TableCell>
-                    {/* <TableCell>
-                      <div
-                        className="max-w-[120px] truncate text-sm text-muted-foreground"
-                        title={task.projectName}
-                      >
+                      <div className="text-xs text-muted-foreground">
                         {task.projectName}
                       </div>
-                    </TableCell> */}
-                    <TableCell className="text-center text-xs">
-                      <Badge
-                        variant="secondary"
-                        className={`${getStatusColor(task.status)} border-0`}
-                      >
-                        {task.status}
-                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{task.status}</Badge>
                     </TableCell>
                     <TableCell>
                       {task.assignees.length === 0 ? (
                         <span className="text-sm text-muted-foreground">
                           Unassigned
                         </span>
-                      ) : task.assignees.length === 1 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {task?.assignees?.map((assignee) => (
+                      ) : task.assignees.length <= 3 ? (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {task.assignees.map((assignee) => (
                             <div
                               key={assignee.id}
                               className="flex items-center gap-2 bg-muted px-2 py-1 rounded-md"
@@ -141,24 +91,9 @@ export function TaskOverviewTable({ tasks }: TaskOverviewTableProps) {
                             </div>
                           ))}
                         </div>
-                      ) : task.assignees.length === 2 ? (
-                        <div className="flex items-center gap-2">
-                          {task.assignees.map((assignee) => (
-                            <Avatar
-                              key={assignee.id}
-                              className="h-7 w-7 ring-2 ring-background"
-                              title={`${assignee.username} (${assignee.email})`}
-                            >
-                              <AvatarImage src={undefined} />
-                              <AvatarFallback className="text-xs">
-                                {getInitials(assignee.username)}
-                              </AvatarFallback>
-                            </Avatar>
-                          ))}
-                        </div>
                       ) : (
                         <div className="flex -space-x-2">
-                          {task?.assignees?.slice(0, 3).map((assignee) => (
+                          {task.assignees.slice(0, 3).map((assignee) => (
                             <Avatar
                               key={assignee.id}
                               className="h-8 w-8 ring-2 ring-background"
@@ -179,17 +114,6 @@ export function TaskOverviewTable({ tasks }: TaskOverviewTableProps) {
                           )}
                         </div>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={`text-sm ${
-                          isOverdue(task.dueDate)
-                            ? "text-red-600 dark:text-red-400 font-medium"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {formatDueDate(task.dueDate)}
-                      </span>
                     </TableCell>
                   </TableRow>
                 ))

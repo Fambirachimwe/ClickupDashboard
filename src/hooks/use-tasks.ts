@@ -39,6 +39,7 @@ interface TasksResponse {
   stats: DashboardStats;
   projects: ProjectData[];
   tasks: TaskSummary[];
+  reviewTasks: TaskSummary[];
   openTasksByAssignee: Array<{ id: string; username: string; email: string; count: number }>;
 }
 
